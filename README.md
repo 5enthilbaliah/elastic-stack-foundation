@@ -1,9 +1,8 @@
 # elastic-stack-foundation
 
-To up the docker files run elastic-setup.sh
+docker compose up -d
 
-to down the docker files run elastic-destroy.sh
+docker compose down
 
 # Known issues
-Certs not working
-Passwords are stored in multiple places
+Going to run elastic and kibana on http. We will use nginx to secure it.
