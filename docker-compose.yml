@@ -153,6 +153,7 @@ services:
       - ELASTICSEARCH_HOSTS=http://elastic-search-foundation:9200
       - ELASTICSEARCH_USERNAME=${KIBANA_SYSTEM}
       - ELASTICSEARCH_PASSWORD=${KIBANA_SYSTEM_PASSWORD}
+      - "SERVER_BASEPATH=/kibana"
     healthcheck:
       test:
         [
