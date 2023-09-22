@@ -3,6 +3,7 @@
 services:
   elastic-setup:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.9.2
+    container_name: elastic-setup
     volumes:
       - vol-elastic-data:/usr/share/elasticsearch/data
     networks:
@@ -39,7 +40,56 @@ services:
                 \"intelligence\" : 7
               }
             }"
-            echo "Created Kibana admin";
+        echo "Created Kibana admin";
+      
+        curl -k -u "elastic:${ELASTIC_PASSWORD}" -X POST "http://elastic-search-foundation:9200/_security/user/${APM_SYSTEM}" -H "Content-Type: application/json" -d "
+                  {
+                    \"password\" : \"${APM_PASSWORD}\",
+                    \"roles\" : [ \"apm_system\", \"apm_user\" ],
+                    \"full_name\" : \"${APM_SYSTEM_NAME}\",
+                    \"email\" : \"${APM_SYSTEM_EMAIL}\",
+                    \"metadata\" : {
+                      \"intelligence\" : 7
+                    }
+                  }"
+        echo "Created APM user";
+      
+        curl -k -u "elastic:${ELASTIC_PASSWORD}" -X POST "http://elastic-search-foundation:9200/_security/user/${BEAT_SYSTEM}" -H "Content-Type: application/json" -d "
+                          {
+                            \"password\" : \"${BEAT_PASSWORD}\",
+                            \"roles\" : [ \"beats_admin\", \"beats_system\" ],
+                            \"full_name\" : \"${BEAT_SYSTEM_NAME}\",
+                            \"email\" : \"${BEAT_SYSTEM_EMAIL}\",
+                            \"metadata\" : {
+                              \"intelligence\" : 7
+                            }
+                          }"
+        echo "Created Beat user";
+      
+        curl -k -u "elastic:${ELASTIC_PASSWORD}" -X POST "http://elastic-search-foundation:9200/_security/user/${LOGSTASH_SYSTEM}" -H "Content-Type: application/json" -d "
+                          {
+                            \"password\" : \"${LOGSTASH_PASSWORD}\",
+                            \"roles\" : [ \"logstash_admin\", \"logstash_system\" ],
+                            \"full_name\" : \"${LOGSTASH_SYSTEM_NAME}\",
+                            \"email\" : \"${LOGSTASH_SYSTEM_EMAIL}\",
+                            \"metadata\" : {
+                              \"intelligence\" : 7
+                            }
+                          }"
+        echo "Created Logstash user";
+      
+        curl -k -u "elastic:${ELASTIC_PASSWORD}" -X POST "http://elastic-search-foundation:9200/_security/user/${SUPERUSER_SYSTEM}" -H "Content-Type: application/json" -d "
+                          {
+                            \"password\" : \"${SUPERUSER_PASSWORD}\",
+                            \"roles\" : [ \"superuser\" ],
+                            \"full_name\" : \"${SUPERUSER_SYSTEM_NAME}\",
+                            \"email\" : \"${SUPERUSER_SYSTEM_EMAIL}\",
+                            \"metadata\" : {
+                              \"intelligence\" : 7
+                            }
+                          }"
+        echo "Created Super user";
+      
       else
         until curl -s http://elastic-search-foundation:9200 | grep -q "missing authentication credentials"; do sleep 30; done;
       fi;
@@ -84,12 +134,12 @@ services:
       timeout: 10s
       retries: 120
 
-  kibana:
+  kibana-foundation:
     depends_on:
       elastic-search-foundation:
         condition: service_healthy
     image: docker.elastic.co/kibana/kibana:8.9.2
-    container_name: kibana
+    container_name: kibana-foundation
     restart: unless-stopped
     mem_limit: ${KB_MEM_LIMIT}
     volumes:
